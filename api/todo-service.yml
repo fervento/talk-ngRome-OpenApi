@@ -1,0 +1,234 @@
+swagger: "2.0"
+info:
+  description: "Service to create and manage todo lists"
+  version: "1.0.0"
+  title: "TODO API"
+  termsOfService: "http://fervento.io/terms/"
+  contact:
+    name: "Fervento ©"
+    email: "contacts@fervento.engineering"
+host: "localhost:9081"
+basePath: "/api"
+schemes:
+  - "http"
+  - "https"
+tags:
+  - name: Todo Service
+    description: Todo CRUD service
+parameters:
+  LimitParam:
+    name: limit
+    in: query
+    required: true
+    type: integer
+    format: int32
+    default: 10
+paths:
+  /todo:
+    get:
+      tags:
+        - Todo Service
+      summary: "List of Todo"
+      description: |
+        Unfiltered list of Todo
+      parameters:
+        # - name: done
+        #   in: query
+        #   required: true
+        #   type: boolean
+        - $ref: '#/parameters/LimitParam'
+      produces:
+        - application/json
+      responses:
+        200:
+          description: List of Todo
+          schema:
+            title: TodoListResponse
+            type: array
+            items:
+              $ref: '#/definitions/Todo'
+            # example: |
+            #   [
+            #     {
+            #       id: "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+            #       text: "Buy groceries",
+            #       done: false
+            #     },
+            #     {
+            #       id: "d7542582-0880-4201-bbde-c06b7a15d697",
+            #       text: "Do laundry",
+            #       done: true
+            #     },
+            #   ]
+        500:
+          $ref: '#/responses/InternalServerError_500'
+        501:
+          $ref: '#/responses/Not_Implemented_501'
+    post:
+      tags:
+        - Todo Service
+      summary: "Create new Todo"
+      description: "Receives a todo object without id and persits it, returns the todo with id"
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: request
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/Todo'
+      responses:
+        200:
+          description: Todo
+          schema:
+            $ref: '#/definitions/Todo'
+        500:
+          $ref: '#/responses/InternalServerError_500'
+        501:
+          $ref: '#/responses/Not_Implemented_501'
+  /todo/{id}:
+    get:
+      tags:
+        - Todo Service
+      summary: "Retrieves a Todo by it's ID"
+      description: |
+      produces:
+        - application/json
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: the todo identifier
+        type: string
+        format: uuid
+      responses:
+        200:
+          description: Todo
+          schema:
+            $ref: '#/definitions/Todo'
+        500:
+          $ref: '#/responses/InternalServerError_500'
+        501:
+          $ref: '#/responses/Not_Implemented_501'
+    patch:
+      tags:
+        - Todo Service
+      summary: "Retrieves a Todo by it's ID"
+      description: |
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: the todo identifier
+          type: string
+          format: uuid
+        - name: request
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/Todo'
+      responses:
+        200:
+          description: Todo
+          schema:
+            $ref: '#/definitions/Todo'
+        500:
+          $ref: '#/responses/InternalServerError_500'
+        501:
+          $ref: '#/responses/Not_Implemented_501'
+    delete:
+      tags:
+        - Todo Service
+      summary: "Deletes a Todo by it's id"
+      description: |
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: the todo identifier
+          type: string
+          format: uuid
+      responses:
+        204:
+          description: Succesfully deleted
+        500:
+          $ref: '#/responses/InternalServerError_500'
+        501:
+          $ref: '#/responses/Not_Implemented_501'
+responses:
+  InternalServerError_500:
+    description: >-
+      Internal failure of the service.
+    schema:
+      $ref: '#/definitions/ServiceFailureResponse'
+  Not_Implemented_501:
+    description: >-
+      Client request unsupported.
+    schema:
+      $ref: '#/definitions/ErrorResponseList'
+definitions:
+  Todo:
+    type: object
+    properties:
+      id:
+        type: string
+        format: uuid
+        example: "01408d98-ecf5-47f6-8658-36cc4b8d660d"
+        description: "Unique identifies"
+      text:
+        type: string
+        description: "Todo entry description"
+        example: "Buy groceries"
+      done:
+        type: boolean
+        description: "State of todo"
+        default: false
+  ErrorResponseList:
+    type: array
+    items:
+      $ref: '#/definitions/ErrorResponse'
+  ErrorResponse:
+    type: object
+    description: |
+      The specification of one error caused by the user request.
+      This class of Errors is NOT retryable, because the user must change its request.
+    properties:
+      code:
+        type: string
+        description: One of a server-defined set of error codes.
+        example: 'BadArgument'
+      message:
+        type: string
+        description: A human-readable representation of the error.
+        example: "The parameter 'age' cannot be negative!"
+      target:
+        type: string
+        description: The target of the error.
+        example: 'age'
+  ServiceFailureResponse:
+    type: object
+    description: |
+      The specification of one (unexpected) error that occourred on the server.
+      This class of Errors can be retryed, since can be occasional or intermittent (e.g. network problems)
+    properties:
+      code:
+        type: string
+        description: One of a server-defined set of error codes.
+        example: 'IOException'
+      time:
+        type: string
+        format: date-time
+      cause:
+        type: string
+        description: The type cause of the error.
+      message:
+        type: string
+        description: A human-readable representation of the error.
+        example: 'Cannot connect to the datasource!'
+  

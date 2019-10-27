@@ -1,0 +1,49 @@
+plugins {
+    id 'base'
+    id "org.openapi.generator" version "4.1.3"
+    id "com.moowork.node" version "1.3.1"
+}
+
+def openApiURL = "$rootDir/../api/todo-service.yml" // This should be an URL to version control
+def openApiOutputFolder = "$rootDir/src/app/swagger"
+
+task installNpx(type: NpmTask) {
+    args = ['install', 'npx']
+}
+
+task ngNew(type: NodeTask) {
+    dependsOn {
+        tasks.installNpx
+    }
+    script = file("$rootDir/node_modules/npx/index.js".toString())
+    args = [ '-p', '@angular/cli', 'ng',
+             'new', "$project.name".toString(), "--directory=.",
+             '--routing=false', '--style=scss']
+}
+
+task generateApi {
+    dependsOn {
+        tasks.openApiGenerate {
+            generatorName = "typescript-angular"
+            inputSpec = openApiURL.toString()
+            outputDir = openApiOutputFolder.toString()
+            apiPackage = "api"
+            modelPackage = "model"
+            configOptions = [
+                ngVersion: "8.0.0"
+            ]
+        }
+    }
+}
+
+task ngBootstrap {
+    dependsOn {
+        tasks.ngNew
+    }
+    finalizedBy tasks.generateApi
+}
+
+clean.doFirst {
+    delete openApiOutputFolder
+    delete 'dist'
+}

@@ -1,0 +1,255 @@
+---
+swagger: "2.0"
+info:
+  description: "Service to create and manage todo lists"
+  version: "1.0"
+  title: "TODO API"
+  termsOfService: "http://fervento.io/terms/"
+  contact:
+    name: "Fervento ©"
+    email: "contacts@fervento.engineering"
+  license:
+    name: "Fervento private"
+host: "localhost:9081"
+basePath: "/api"
+tags:
+- name: "Todo Service"
+  description: "Todo CRUD service"
+schemes:
+- "http"
+- "https"
+paths:
+  /todo:
+    get:
+      tags:
+      - "Todo Service"
+      summary: "List of Todo"
+      description: "Unfiltered list of Todo\n"
+      operationId: "todoGET"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "limit"
+        in: "query"
+        required: true
+        type: "integer"
+        default: 10
+        format: "int32"
+      responses:
+        200:
+          description: "List of Todo"
+          schema:
+            title: "TodoListResponse"
+            type: "array"
+            items:
+              $ref: "#/definitions/Todo"
+        500:
+          description: "Internal failure of the service."
+          schema:
+            $ref: "#/definitions/ServiceFailureResponse"
+        501:
+          description: "Client request unsupported."
+          schema:
+            $ref: "#/definitions/ErrorResponseList"
+      x-swagger-router-controller: "TodoService"
+    post:
+      tags:
+      - "Todo Service"
+      summary: "Create new Todo"
+      description: "Receives a todo object without id and persits it, returns the\
+        \ todo with id"
+      operationId: "todoPOST"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "body"
+        name: "request"
+        required: true
+        schema:
+          $ref: "#/definitions/Todo"
+      responses:
+        200:
+          description: "Todo"
+          schema:
+            $ref: "#/definitions/Todo"
+        500:
+          description: "Internal failure of the service."
+          schema:
+            $ref: "#/definitions/ServiceFailureResponse"
+        501:
+          description: "Client request unsupported."
+          schema:
+            $ref: "#/definitions/ErrorResponseList"
+      x-swagger-router-controller: "TodoService"
+  /todo/{id}:
+    get:
+      tags:
+      - "Todo Service"
+      summary: "Retrieves a Todo by it's ID"
+      description: ""
+      operationId: "todoIdGET"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "id"
+        in: "path"
+        description: "the todo identifier"
+        required: true
+        type: "string"
+        format: "uuid"
+      responses:
+        200:
+          description: "Todo"
+          schema:
+            $ref: "#/definitions/Todo"
+        500:
+          description: "Internal failure of the service."
+          schema:
+            $ref: "#/definitions/ServiceFailureResponse"
+        501:
+          description: "Client request unsupported."
+          schema:
+            $ref: "#/definitions/ErrorResponseList"
+      x-swagger-router-controller: "TodoService"
+    delete:
+      tags:
+      - "Todo Service"
+      summary: "Deletes a Todo by it's id"
+      description: ""
+      operationId: "todoIdDELETE"
+      parameters:
+      - name: "id"
+        in: "path"
+        description: "the todo identifier"
+        required: true
+        type: "string"
+        format: "uuid"
+      responses:
+        204:
+          description: "Succesfully deleted"
+        500:
+          description: "Internal failure of the service."
+          schema:
+            $ref: "#/definitions/ServiceFailureResponse"
+        501:
+          description: "Client request unsupported."
+          schema:
+            $ref: "#/definitions/ErrorResponseList"
+      x-swagger-router-controller: "TodoService"
+    patch:
+      tags:
+      - "Todo Service"
+      summary: "Retrieves a Todo by it's ID"
+      description: ""
+      operationId: "todoIdPATCH"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "id"
+        in: "path"
+        description: "the todo identifier"
+        required: true
+        type: "string"
+        format: "uuid"
+      - in: "body"
+        name: "request"
+        required: true
+        schema:
+          $ref: "#/definitions/Todo"
+      responses:
+        200:
+          description: "Todo"
+          schema:
+            $ref: "#/definitions/Todo"
+        500:
+          description: "Internal failure of the service."
+          schema:
+            $ref: "#/definitions/ServiceFailureResponse"
+        501:
+          description: "Client request unsupported."
+          schema:
+            $ref: "#/definitions/ErrorResponseList"
+      x-swagger-router-controller: "TodoService"
+definitions:
+  Todo:
+    type: "object"
+    properties:
+      id:
+        type: "string"
+        format: "uuid"
+        description: "Unique identifies"
+        default: "01408d98-ecf5-47f6-8658-36cc4b8d660d"
+      text:
+        type: "string"
+        description: "Todo entry description"
+        default: "Buy groceries"
+      done:
+        type: "boolean"
+        description: "State of todo"
+        default: false
+    example:
+      id: "046b6c7f-0b8a-43b9-b35d-6489e6daee91"
+      text: "Buy groceries"
+      done: false
+  ErrorResponseList:
+    type: "array"
+    items:
+      $ref: "#/definitions/ErrorResponse"
+  ErrorResponse:
+    type: "object"
+    properties:
+      code:
+        type: "string"
+        example: "BadArgument"
+        description: "One of a server-defined set of error codes."
+      message:
+        type: "string"
+        example: "The parameter 'age' cannot be negative!"
+        description: "A human-readable representation of the error."
+      target:
+        type: "string"
+        example: "age"
+        description: "The target of the error."
+    description: "The specification of one error caused by the user request.\nThis\
+      \ class of Errors is NOT retryable, because the user must change its request.\n"
+  ServiceFailureResponse:
+    type: "object"
+    properties:
+      code:
+        type: "string"
+        example: "IOException"
+        description: "One of a server-defined set of error codes."
+      time:
+        type: "string"
+        format: "date-time"
+      cause:
+        type: "string"
+        description: "The type cause of the error."
+      message:
+        type: "string"
+        example: "Cannot connect to the datasource!"
+        description: "A human-readable representation of the error."
+    description: "The specification of one (unexpected) error that occourred on the\
+      \ server.\nThis class of Errors can be retryed, since can be occasional or intermittent\
+      \ (e.g. network problems)\n"
+parameters:
+  LimitParam:
+    name: "limit"
+    in: "query"
+    required: true
+    type: "integer"
+    default: 10
+    format: "int32"
+responses:
+  InternalServerError_500:
+    description: "Internal failure of the service."
+    schema:
+      $ref: "#/definitions/ServiceFailureResponse"
+  Not_Implemented_501:
+    description: "Client request unsupported."
+    schema:
+      $ref: "#/definitions/ErrorResponseList"
